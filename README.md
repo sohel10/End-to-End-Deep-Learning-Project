@@ -102,7 +102,7 @@ export AWS_REGION="us-east-1"
 python app.py
 
 
-# 6 AWS CI/CD Deployment Pipeline
+# AWS CI/CD Deployment Pipeline
 
 This project includes a production-ready MLOps deployment workflow.
 
@@ -113,10 +113,10 @@ With permissions:
 AmazonEC2FullAccess
 
 AmazonEC2ContainerRegistryFullAccess
-Step 2 — Create ECR Repository
+# Step 2 — Create ECR Repository
 
 
-Step 3 — Create EC2 Instance
+# Step 3 — Create EC2 Instance
 
 Ubuntu + Docker installed:
 
@@ -135,7 +135,7 @@ Follow the instructions and run commands on EC2.
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=us-east-1
-AWS_ECR_LOGIN_URI=404925354687.dkr.ecr.us-east-1.amazonaws.com
+AWS_ECR_LOGIN_URI=40492535.dkr.ecr.us-east-1.amazonaws.com
 ECR_REPOSITORY_NAME=chicken
 
 # Step 6 — GitHub Actions Will Automatically:
