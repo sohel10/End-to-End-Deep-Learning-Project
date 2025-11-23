@@ -11,11 +11,11 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  BUILDX_INSTALL: false   # <<< IMPORTANT FIX <<<
+
 jobs:
 
-  # -------------------------------
-  # 1. CONTINUOUS INTEGRATION
-  # -------------------------------
   Continuous-Integration:
     runs-on: ubuntu-latest
     steps:
@@ -28,17 +28,16 @@ jobs:
       - name: Run Unit Tests
         run: echo "Running unit tests..."
 
-
-  # -------------------------------
-  # 2. CONTINUOUS DELIVERY (BUILD & PUSH TO ECR)
-  # -------------------------------
   Continuous-Delivery:
     needs: Continuous-Integration
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Disable Buildx (GitHub auto-builder)
+        run: |
+          docker buildx rm default || true
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -47,11 +46,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Push Docker Image
+      - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
@@ -61,14 +60,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-
-  # -------------------------------
-  # 3. CONTINUOUS DEPLOYMENT (SELF-HOSTED EC2)
-  # -------------------------------
   Continuous-Deployment:
     needs: Continuous-Delivery
     runs-on: self-hosted
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -83,15 +77,16 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Pull latest Docker image
+      - name: Pull latest container
         run: |
           docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Restart Container
+      - name: Restart container
         run: |
           docker rm -f cnncls || true
-          docker run -d -p 8080:8080 --name cnncls \
+          docker run -d -p 8080:8080 \
+            --name cnncls \
             ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Cleanup Images
+      - name: Cleanup
         run: docker system prune -f
