@@ -51,7 +51,7 @@ jobs:
           echo "Building Docker image..."
          
 
- Continuous-Deployment:
+  Continuous-Deployment:
   needs: build-and-push-ecr-image
   runs-on: self-hosted
 
