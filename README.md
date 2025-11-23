@@ -38,7 +38,9 @@ Dockerized deployment to AWS (ECR + EC2)
 Production workflow following ML engineering best practices
 
 This repository demonstrates the ability to build scalable, reproducible ML systems used in clinical AI, medical imaging, pharma research, and production MLOps workflows.
+## 📌 System Architecture (Enterprise-Grade)
 
+![Enterprise ML Architecture](image.png)
 ### Project Architecture
 
 data/
