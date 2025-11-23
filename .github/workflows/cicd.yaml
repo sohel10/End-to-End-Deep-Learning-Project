@@ -1,11 +1,11 @@
-name: workflow
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
     paths-ignore:
-      - 'README.md'
+      - "README.md"
 
 permissions:
   id-token: write
@@ -18,10 +18,12 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-      - name: Lint code
-        run: echo "Linting repository"
-      - name: Run unit tests
-        run: echo "Running unit tests"
+
+      - name: Run Lint
+        run: echo "Linting..."
+
+      - name: Run Unit Tests
+        run: echo "Running tests..."
 
   build-and-push-ecr-image:
     name: Continuous Delivery
@@ -37,7 +39,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq unzip
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -57,17 +59,19 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: latest
         run: |
-          docker buildx build \
-            --platform linux/amd64 \
+          echo "Building & pushing Docker image..."
+          docker buildx build --platform linux/amd64 \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             . \
             --push
 
-  Continuous-Deployment:
+  deploy:
+    name: Continuous Deployment
     needs: build-and-push-ecr-image
     runs-on: self-hosted
+
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Pull Latest Image
@@ -80,8 +84,10 @@ jobs:
 
       - name: Run New Container
         run: |
-          docker run -d -p 8080:8080 --name=cnncls \
+          docker run -d \
+            -p 8080:8080 \
+            --name cnncls \
             ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Cleanup
+      - name: Cleanup Unused Images
         run: docker system prune -f
