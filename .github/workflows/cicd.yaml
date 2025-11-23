@@ -51,23 +51,38 @@ jobs:
           echo "Building Docker image..."
          
 
-  Continuous-Deployment:
-    needs: Continuous-Delivery
-    runs-on: self-hosted
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      
-      - name: Login to ECR
-        uses: aws-actions/amazon-ecr-login@v2
+ Continuous-Deployment:
+  needs: build-and-push-ecr-image
+  runs-on: self-hosted
 
-      - name: Pull latest image
-        run: docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Run Docker Container
-        run: |
-          docker stop cnncls || true
-          docker rm cnncls || true
-          docker run -d -p 8080:8080 \
-            --name cnncls \
-            ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+    # FIX: Add AWS credentials before logging into ECR
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Pull latest image
+      run: |
+        docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+    - name: Run Docker Container
+      run: |
+        docker rm -f cnncls || true
+        docker run -d -p 8080:8080 --name=cnncls \
+          -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+          -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          -e AWS_REGION=${{ secrets.AWS_REGION }} \
+          ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+    - name: Cleanup
+      run: docker system prune -f
