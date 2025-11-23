@@ -1,4 +1,4 @@
-# End-to-End-Deep-Learning-Project
+### End-to-End Deep Learning Project (Production-Ready, MLOps + CI/CD + AWS)
 
 
 #### Data Link: 
@@ -16,121 +16,168 @@
 
 
 
+End-to-End Deep Learning Project (Production-Ready, MLOps + CI/CD + AWS)
 
-# How to run?
-### STEPS:
+A complete deep learning pipeline built with modular ML architecture, CI/CD automation, containerization, and cloud deployment.
+Designed to demonstrate real-world ML engineering skills used in healthcare + biomedical AI.
 
-Clone the repository
+### Project Overview
 
-```bash
-https://github.com/sohel10/End-to-End-Deep-Learning-Project
-### STEP 01- Create a conda environment after opening the repository
+This project implements a full end-to-end deep learning system, including:
 
-```bash
+Data ingestion pipeline (config-driven)
+
+Training + Evaluation pipeline (CNN-based classifier)
+
+Prediction service with a web UI (FastAPI/Flask)
+
+CI/CD automation with GitHub Actions
+
+Dockerized deployment to AWS (ECR + EC2)
+
+Production workflow following ML engineering best practices
+
+This repository demonstrates the ability to build scalable, reproducible ML systems used in clinical AI, medical imaging, pharma research, and production MLOps workflows.
+
+### Project Architecture
+
+data/
+config/
+src/
+   ├── components/
+   ├── config/
+   ├── cnnClassifier/
+   ├── pipeline/
+   └── utils/
+templates/
+.github/workflows/
+app.py
+main.py
+Dockerfile
+requirements.txt
+params.yaml
+config.yaml
+
+### Key Features
+✔ Modular ML pipeline (train → evaluate → predict)
+✔ Config-driven architecture (YAML-managed)
+✔ Automated CI/CD pipeline (GitHub Actions)
+✔ Full Docker containerization
+✔ AWS deployment with EC2 + ECR
+✔ Interactive prediction web app
+✔ Production-ready folder structure
+✔ Automatic training logs + JSON-based score tracking
+
+### Tech Stack
+
+Python, PyTorch / TensorFlow
+
+FastAPI / Flask (inference server)
+
+Docker, GitHub Actions
+
+AWS EC2, ECR, IAM
+
+YAML-based configuration management
+
+# How to Run the Project
+#1. Clone the Repository
+git clone https://github.com/sohel10/End-to-End-Deep-Learning-Project
+cd End-to-End-Deep-Learning-Project
+
+# 2. Create Conda Environment
+
 conda create -n chi python=3.8 -y
-```
-
-```bash
 conda activate chi
-```
 
-
-### STEP 02- install the requirements
-```bash
+# 3. Install Requirements
 pip install -r requirements.txt
-```
 
+#  4. Update AWS Credentials (For Deployment)
+export AWS_ACCESS_KEY_ID="YOUR_KEY"
+export AWS_SECRET_ACCESS_KEY="YOUR_SECRET"
+export AWS_REGION="us-east-1"
 
-### Export the environment
-```bash
-export AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY_ID""
-export AWS_SECRET_ACCESS_KEY="YOUR_SECRET_ACCESS_KEY"
-
-```
-
-
-```bash
-# Finally run the following command
+# 5. Run the Application
 python app.py
-```
-
-Now,
-```bash
-open up you local host and port
-```
 
 
+# 6 AWS CI/CD Deployment Pipeline
+
+This project includes a production-ready MLOps deployment workflow.
+
+# Step 1 — Create IAM User
+
+With permissions:
+
+AmazonEC2FullAccess
+
+AmazonEC2ContainerRegistryFullAccess
+Step 2 — Create ECR Repository
 
 
-# AWS-CICD-Deployment-with-Github-Actions
+Step 3 — Create EC2 Instance
 
-## 1. Login to AWS console.
+Ubuntu + Docker installed:
 
-## 2. Create IAM user for deployment
+sudo apt-get update -y
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker ubuntu
 
-	#with specific access
+# Step 4 — Configure EC2 as Self-Hosted GitHub Runner
 
-	1. EC2 access : It is virtual machine
+GitHub → Repo → Settings → Actions → Runners
 
-	2. ECR: Elastic Container registry to save your docker image in aws
+Follow the instructions and run commands on EC2.
 
+# Step 5 — Add GitHub Secrets
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=us-east-1
+AWS_ECR_LOGIN_URI=404925354687.dkr.ecr.us-east-1.amazonaws.com
+ECR_REPOSITORY_NAME=chicken
 
-	#Description: About the deployment
+# Step 6 — GitHub Actions Will Automatically:
 
-	1. Build docker image of the source code
+Build Docker image
 
-	2. Push your docker image to ECR
+Push to ECR
 
-	3. Launch Your EC2 
+SSH to EC2 runner
 
-	4. Pull Your image from ECR in EC2
+Pull latest image
 
-	5. Lauch your docker image in EC2
+Start container
 
-	#Policy:
+Run prediction service
 
-	1. AmazonEC2ContainerRegistryFullAccess
+### 📊 Training & Evaluation
 
-	2. AmazonEC2FullAccess
+Model metrics are automatically saved to:
 
-	
-## 3. Create ECR repo to store/save docker image
-    - Save the URI: 404925354687.dkr.ecr.us-east-1.amazonaws.com/chicken
-	
-## 4. Create EC2 machine (Ubuntu) 
-
-## 5. Open EC2 and Install docker in EC2 Machine:
-	
-	
-	#optinal
-
-	sudo apt-get update -y
-
-	sudo apt-get upgrade
-	
-	#required
-
-	curl -fsSL https://get.docker.com -o get-docker.sh
-
-	sudo sh get-docker.sh
-
-	sudo usermod -aG docker ubuntu
-
-	newgrp docker
-	
-# 6. Configure EC2 as self-hosted runner:
-    setting>actions>runner>new self hosted runner> choose os> then run command one by one
+scores.json
 
 
-# 7. Setup github secrets:
+Artifacts (models, logs, metrics) stored in:
 
-    AWS_ACCESS_KEY_ID=
+model/
 
-    AWS_SECRET_ACCESS_KEY=
+### 🎯 Use Cases
 
-    AWS_REGION = us-east-1
+This project can be extended to:
 
-    AWS_ECR_LOGIN_URI = demo>>  404925354687.dkr.ecr.us-east-1.amazonaws.com/chicken
+Medical image classification
 
-    ECR_REPOSITORY_NAME = simple-app
+ADMET prediction
+
+Clinical risk scoring
+
+Pathology image analysis
+
+Automated cloud‐ready ML workflows
+
+### 📎 License
+
+MIT License.
 
