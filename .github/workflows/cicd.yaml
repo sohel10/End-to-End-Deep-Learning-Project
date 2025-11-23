@@ -2,16 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - "README.md"
-
-permissions:
-  id-token: write
-  contents: read
+    branches: [ "main" ]
 
 jobs:
+
   integration:
     name: Continuous Integration
     runs-on: ubuntu-latest
@@ -19,11 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Run Lint
-        run: echo "Linting..."
+      - name: Run Lint & Tests
+        run: |
+          echo "Running tests..."
+          # add your test commands here
 
-      - name: Run Unit Tests
-        run: echo "Running tests..."
 
   build-and-push-ecr-image:
     name: Continuous Delivery
@@ -60,34 +54,8 @@ jobs:
           IMAGE_TAG: latest
         run: |
           echo "Building & pushing Docker image..."
-          docker buildx build --platform linux/amd64 \
+          docker buildx build \
+            --platform linux/amd64 \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             . \
             --push
-
-  deploy:
-    name: Continuous Deployment
-    needs: build-and-push-ecr-image
-    runs-on: self-hosted
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Pull Latest Image
-        run: |
-          docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-
-      - name: Stop Old Container
-        run: |
-          docker rm -f cnncls || true
-
-      - name: Run New Container
-        run: |
-          docker run -d \
-            -p 8080:8080 \
-            --name cnncls \
-            ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-
-      - name: Cleanup Unused Images
-        run: docker system prune -f
