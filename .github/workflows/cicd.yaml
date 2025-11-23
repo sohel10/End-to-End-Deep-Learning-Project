@@ -13,9 +13,9 @@ permissions:
 
 jobs:
 
-  # ------------------------------------------------------
+  # ======================================================
   # 1) CONTINUOUS INTEGRATION
-  # ------------------------------------------------------
+  # ======================================================
   Continuous-Integration:
     runs-on: ubuntu-latest
     steps:
@@ -28,9 +28,9 @@ jobs:
       - name: Run Unit Tests
         run: echo "Running unit tests..."
 
-  # ------------------------------------------------------
-  # 2) CONTINUOUS DELIVERY — BUILD & PUSH TO ECR
-  # ------------------------------------------------------
+  # ======================================================
+  # 2) CONTINUOUS DELIVERY — Build & Push to ECR
+  # ======================================================
   Continuous-Delivery:
     needs: Continuous-Integration
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push image to ECR
+      - name: Build, Tag & Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
@@ -58,11 +58,13 @@ jobs:
         run: |
           echo "Building Docker image..."
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+          echo "Pushing Docker image..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  # ------------------------------------------------------
-  # 3) CONTINUOUS DEPLOYMENT — DEPLOY TO EC2 (SELF-HOSTED)
-  # ------------------------------------------------------
+  # ======================================================
+  # 3) CONTINUOUS DEPLOYMENT — Deploy on EC2
+  # ======================================================
   Continuous-Deployment:
     needs: Continuous-Delivery
     runs-on: self-hosted
@@ -86,7 +88,7 @@ jobs:
         run: |
           docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Stop & Run Container
+      - name: Restart Container
         run: |
           docker rm -f cnncls || true
           docker run -d -p 8080:8080 --name=cnncls \
@@ -95,5 +97,5 @@ jobs:
             -e AWS_REGION=${{ secrets.AWS_REGION }} \
             ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Cleanup
+      - name: Cleanup Docker
         run: docker system prune -f
