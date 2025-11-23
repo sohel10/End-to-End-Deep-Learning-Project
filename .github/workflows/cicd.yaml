@@ -13,47 +13,37 @@ permissions:
 
 jobs:
 
-  # ------------------------------------------------------
-  # 1) CONTINUOUS INTEGRATION
-  # ------------------------------------------------------
   Continuous-Integration:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Lint
+      - name: Lint Code
         run: echo "Linting..."
 
-      - name: Unit tests
-        run: echo "Running tests..."
+      - name: Run Unit Tests
+        run: echo "Running unit tests..."
 
-  # ------------------------------------------------------
-  # 2) CONTINUOUS DELIVERY (Build + Push to ECR)
-  # ------------------------------------------------------
   Continuous-Delivery:
     needs: Continuous-Integration
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      # AWS Credentials
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Login to ECR
-      - name: Login to Amazon ECR
+      - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Build & Push Docker Image
-      - name: Build and push Docker image
+      - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
@@ -61,47 +51,35 @@ jobs:
         run: |
           echo "Building Docker image..."
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          echo "Pushing Docker image..."
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-
-  # ------------------------------------------------------
-  # 3) CONTINUOUS DEPLOYMENT (EC2 Self-Hosted Runner)
-  # ------------------------------------------------------
   Continuous-Deployment:
     needs: Continuous-Delivery
     runs-on: self-hosted
-
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      # MUST configure AWS credentials before login
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Pull the latest container
-      - name: Pull latest image
+      - name: Pull latest container
         run: |
           docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      # Stop old container, run new one
-      - name: Deploy container
+      - name: Restart container
         run: |
           docker rm -f cnncls || true
-          docker run -d -p 8080:8080 --name cnncls \
-            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -e AWS_REGION=${{ secrets.AWS_REGION }} \
+          docker run -d -p 8080:8080 \
+            --name cnncls \
             ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
-      - name: Cleanup disk
+      - name: Cleanup
         run: docker system prune -f
