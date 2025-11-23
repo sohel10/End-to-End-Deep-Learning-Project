@@ -1,4 +1,4 @@
-# End-to-End-Deep-Learning-Project-Chicken-Disease
+# End-to-End-Deep-Learning-Project
 
 
 #### Data Link: 
@@ -27,7 +27,7 @@ https://github.com/sohel10/End-to-End-Deep-Learning-Project
 ### STEP 01- Create a conda environment after opening the repository
 
 ```bash
-conda create -n cnncls python=3.8 -y
+conda create -n chi python=3.8 -y
 ```
 
 ```bash
